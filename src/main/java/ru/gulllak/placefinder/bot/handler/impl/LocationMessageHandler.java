@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import ru.gulllak.placefinder.bot.BotCondition;
@@ -12,7 +13,7 @@ import ru.gulllak.placefinder.bot.keyboard.ReplyKeyboardMarkupBuilder;
 import ru.gulllak.placefinder.service.ReplyMessageService;
 import ru.gulllak.placefinder.util.Emoji;
 
-import java.util.Collections;
+import java.io.Serializable;
 import java.util.List;
 
 @Component
@@ -26,8 +27,10 @@ public class LocationMessageHandler implements MessageHandler {
     }
 
     @Override
-    public List<BotApiMethod<Message>> handle(Message message) {
+    public List<BotApiMethod<? extends Serializable>> handle(Message message) {
         Long chatId = message.getChatId();
+        //Удаление предыдущего сообщения
+        DeleteMessage deleteMessage = new DeleteMessage(String.valueOf(chatId), message.getMessageId());
 
         SendMessage sendMessage = replyMessageService.getTextMessage(chatId, Emoji.LOCATION + " Нажмите на кнопку поделится локацией " + Emoji.DOWN);
 
@@ -38,8 +41,9 @@ public class LocationMessageHandler implements MessageHandler {
                 .endRow()
                 .build();
 
+
         sendMessage.setReplyMarkup(replyKeyboard);
 
-        return Collections.singletonList(sendMessage);
+        return List.of(deleteMessage, sendMessage);
     }
 }

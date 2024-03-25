@@ -10,6 +10,7 @@ import ru.gulllak.placefinder.bot.handler.MessageHandler;
 import ru.gulllak.placefinder.exception.NoHandlerFoundException;
 import ru.gulllak.placefinder.service.ReplyMessageService;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 
@@ -21,7 +22,7 @@ public class BotConditionHandler {
 
     private final ReplyMessageService replyMessageService;
 
-    public List<BotApiMethod<Message>> handleTextMessageByCondition(Message message, BotCondition botCondition) {
+    public List<BotApiMethod<? extends Serializable>> handleTextMessageByCondition(Message message, BotCondition botCondition) {
         MessageHandler messageHandler;
         try {
             messageHandler = messageHandlers.stream()

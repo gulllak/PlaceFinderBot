@@ -8,7 +8,9 @@ public enum Emoji {
     PIZZA(EmojiParser.parseToUnicode(":pizza:")),
     WORLD(EmojiParser.parseToUnicode(":earth_asia:")),
     LOCATION(EmojiParser.parseToUnicode(":round_pushpin:")),
-    DOWN(EmojiParser.parseToUnicode(":arrow_down_small:"));
+    DOWN(EmojiParser.parseToUnicode(":arrow_down_small:")),
+    MAG(EmojiParser.parseToUnicode(":mag:")),
+    ANGRY(EmojiParser.parseToUnicode(":rage:"));
 
     private final String emojiName;
 

@@ -6,13 +6,18 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+import org.telegram.telegrambots.meta.api.objects.Location;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
 import ru.gulllak.placefinder.bot.condition.BotConditionHandler;
+import ru.gulllak.placefinder.bot.handler.callbackquery.CallbackQueryHandler;
+import ru.gulllak.placefinder.model.Filter;
 import ru.gulllak.placefinder.model.User;
 import ru.gulllak.placefinder.service.PlaceService;
 import ru.gulllak.placefinder.service.UserService;
 
+import java.io.Serializable;
 import java.util.List;
 
 @Component
@@ -25,10 +30,23 @@ public class UpdateReceiver {
 
     private final BotConditionHandler botConditionHandler;
 
-    public List<BotApiMethod<Message>> handleUpdate(Update update) {
+    private final CallbackQueryHandler callbackQueryHandler;
+
+    public List<BotApiMethod<? extends Serializable>> handleUpdate(Update update) {
         if (update.hasMessage() && update.getMessage().hasText()) {
             Message message = update.getMessage();
             BotCondition botCondition = getBotConditions(message);
+
+            log.info(
+                    "Message from: {}; " +
+                            "chat id: {};  " +
+                            "text: {}; " +
+                            "bot condition: {}",
+                    message.getFrom().getId(),
+                    message.getChatId(),
+                    message.getText(),
+                    botCondition
+            );
 
 //            if(message.getText().equals("/start")) {
 //                return Collections.singletonList(startMessage(message.getChatId(), message.getFrom().getUserName()));
@@ -43,20 +61,42 @@ public class UpdateReceiver {
 
         else if (update.hasMessage() && update.getMessage().hasLocation()) {
             Message message = update.getMessage();
+            message.setText("/searching_filters");
             BotCondition botCondition = getBotConditions(message);
+            saveCoordinates(message);
 
-            return null;
+            log.info(
+                    "Message from: {}; " +
+                            "chat id: {};  " +
+                            "text: {}; " +
+                            "bot condition: {}",
+                    message.getFrom().getId(),
+                    message.getChatId(),
+                    message.getText(),
+                    botCondition
+            );
+
+            //удаляем кнопку поделиться
+            List<BotApiMethod<? extends Serializable>> sending = botConditionHandler.handleTextMessageByCondition(message, botCondition);
+            sending.add(0, removeKeyboard(message.getChatId()));
+
+            return sending;
         }
 
 
         else if (update.hasCallbackQuery()) {
             CallbackQuery callbackQuery = update.getCallbackQuery();
-            Message message = (Message) callbackQuery.getMessage();
-            message.setText(callbackQuery.getData());
 
-            BotCondition botCondition = getBotConditions(message);
+            log.info(
+                    "CallbackQuery from: {}; " +
+                            "data: {}; " +
+                            "message id: {}",
+                    callbackQuery.getFrom().getId(),
+                    callbackQuery.getData(),
+                    callbackQuery.getId()
+            );
 
-            return botConditionHandler.handleTextMessageByCondition(message, botCondition);
+            return callbackQueryHandler.handleCallbackQuery(callbackQuery);
         }
 
         else {
@@ -64,18 +104,9 @@ public class UpdateReceiver {
         }
     }
 
-
-    private SendMessage startMessage(long chatId, String userName) {
-        SendMessage message = new SendMessage();
-        message.setChatId(chatId);
-        message.setText("Привет " + userName + ". Введи название города по которому будет выполнен поиск");
-
-        return message;
-    }
-
     private BotCondition getBotConditions(Message message) {
         long userId = message.getFrom().getId();
-        String textMessage = message.getText();
+        String textMessage = message.getText() == null ? "default" : message.getText();
 
         User user = userService.getById(userId);
 
@@ -100,5 +131,32 @@ public class UpdateReceiver {
         user.setCondition(condition);
 
         userService.save(user);
+    }
+
+    private void saveCoordinates(Message message) {
+        Location location = message.getLocation();
+        User user = userService.getById(message.getChatId());
+
+        Filter filter = new Filter();
+        filter.setUserId(user.getUserId());
+        filter.setLat(location.getLatitude());
+        filter.setLon(location.getLongitude());
+        filter.setUser(user);
+
+        user.setFilter(filter);
+
+        userService.save(user);
+    }
+
+    private SendMessage removeKeyboard(long chatId) {
+        ReplyKeyboardRemove replyKeyboardRemove = new ReplyKeyboardRemove();
+        replyKeyboardRemove.setRemoveKeyboard(true);
+
+        SendMessage deleteKeyboard = new SendMessage();
+        deleteKeyboard.setText("Спасибо за предоставленную локацию!");
+        deleteKeyboard.setChatId(chatId);
+        deleteKeyboard.setReplyMarkup(replyKeyboardRemove);
+
+        return deleteKeyboard;
     }
 }

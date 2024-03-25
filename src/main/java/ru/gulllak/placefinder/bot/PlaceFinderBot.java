@@ -8,7 +8,7 @@ import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
-import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
@@ -27,7 +27,7 @@ public class PlaceFinderBot extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
-        List<BotApiMethod<Message>> responseToUser = updateReceiver.handleUpdate(update);
+        List<BotApiMethod<? extends Serializable>> responseToUser = updateReceiver.handleUpdate(update);
 
         for (PartialBotApiMethod<? extends Serializable> partialBotApiMethod : responseToUser) {
             if(partialBotApiMethod instanceof SendMessage) {
@@ -42,6 +42,14 @@ public class PlaceFinderBot extends TelegramLongPollingBot {
             if(partialBotApiMethod instanceof SendPhoto) {
                 try {
                     execute((SendPhoto) partialBotApiMethod);
+                } catch (TelegramApiException e) {
+                    log.error("Error occurred while sending message to user: {}", e.getMessage());
+                }
+            }
+
+            if(partialBotApiMethod instanceof DeleteMessage) {
+                try {
+                    execute((DeleteMessage) partialBotApiMethod);
                 } catch (TelegramApiException e) {
                     log.error("Error occurred while sending message to user: {}", e.getMessage());
                 }

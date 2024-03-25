@@ -12,6 +12,7 @@ import ru.gulllak.placefinder.bot.keyboard.InlineKeyboardMarkupBuilder;
 import ru.gulllak.placefinder.service.ReplyMessageService;
 import ru.gulllak.placefinder.util.Emoji;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 
@@ -26,7 +27,7 @@ public class StartMessageHandler implements MessageHandler {
     }
 
     @Override
-    public List<BotApiMethod<Message>> handle(Message message) {
+    public List<BotApiMethod<? extends Serializable>> handle(Message message) {
         Long chatId = message.getChatId();
 
         SendMessage sendMessage = replyMessageService.getTextMessage(chatId,

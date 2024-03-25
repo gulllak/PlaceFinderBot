@@ -10,7 +10,11 @@ import ru.gulllak.placefinder.bot.BotCondition;
 import ru.gulllak.placefinder.bot.handler.MessageHandler;
 import ru.gulllak.placefinder.bot.keyboard.InlineKeyboardMarkupBuilder;
 import ru.gulllak.placefinder.service.ReplyMessageService;
+import ru.gulllak.placefinder.util.Emoji;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Component
@@ -24,18 +28,24 @@ public class FilterMessageHandler implements MessageHandler {
     }
 
     @Override
-    public List<BotApiMethod<Message>> handle(Message message) {
+    public List<BotApiMethod<? extends Serializable>> handle(Message message) {
         Long chatId = message.getChatId();
 
-        SendMessage sendMessage = replyMessageService.getTextMessage(chatId, "Здесь вы можете добавить фильтры для поиска");
+        SendMessage sendMessage = replyMessageService.getTextMessage(chatId,
+                Emoji.MAG + " Здесь вы можете добавить поисковые фильтры или получить результат без фильтров.");
 
-        //TODO подумать над фильтрами
         ReplyKeyboard replyKeyboard = InlineKeyboardMarkupBuilder.create(chatId)
                 .row()
-                .button("Радиус", "/location_search")
-                .button("Рейтинг", "/text_search")
+                .button("Расстояние", "/radius")
+                .button("Рейтинг", "/rating")
+                .endRow()
+                .row()
+                .button("Продолжить", "/continue")
                 .endRow()
                 .build();
-        return null;
+
+        sendMessage.setReplyMarkup(replyKeyboard);
+
+        return new ArrayList<>(Arrays.asList(sendMessage));
     }
 }
