@@ -4,7 +4,7 @@ import com.google.maps.GeoApiContext;
 import com.google.maps.model.PlaceDetails;
 import com.google.maps.model.PlacesSearchResponse;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
-import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
+import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import ru.gulllak.placefinder.model.Filter;
 
 import java.io.Serializable;
@@ -20,5 +20,5 @@ public interface PlaceService {
 
     List<BotApiMethod<? extends Serializable>> getSearchResults(long chatId, String messageText);
 
-    List<BotApiMethod<? extends Serializable>> getSearchResults(long chatId, Filter filter);
+    List<PartialBotApiMethod<? extends Serializable>> getSearchResults(long chatId, Filter filter);
 }

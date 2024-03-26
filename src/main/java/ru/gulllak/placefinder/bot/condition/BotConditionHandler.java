@@ -3,7 +3,7 @@ package ru.gulllak.placefinder.bot.condition;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import ru.gulllak.placefinder.bot.BotCondition;
 import ru.gulllak.placefinder.bot.handler.MessageHandler;
@@ -22,7 +22,7 @@ public class BotConditionHandler {
 
     private final ReplyMessageService replyMessageService;
 
-    public List<BotApiMethod<? extends Serializable>> handleTextMessageByCondition(Message message, BotCondition botCondition) {
+    public List<PartialBotApiMethod<? extends Serializable>> handleTextMessageByCondition(Message message, BotCondition botCondition) {
         MessageHandler messageHandler;
         try {
             messageHandler = messageHandlers.stream()

@@ -2,7 +2,7 @@ package ru.gulllak.placefinder.bot.handler.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
@@ -27,7 +27,7 @@ public class LocationMessageHandler implements MessageHandler {
     }
 
     @Override
-    public List<BotApiMethod<? extends Serializable>> handle(Message message) {
+    public List<PartialBotApiMethod<? extends Serializable>> handle(Message message) {
         Long chatId = message.getChatId();
         //Удаление предыдущего сообщения
         DeleteMessage deleteMessage = new DeleteMessage(String.valueOf(chatId), message.getMessageId());

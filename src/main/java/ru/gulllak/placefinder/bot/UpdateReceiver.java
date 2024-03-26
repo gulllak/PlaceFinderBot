@@ -3,7 +3,7 @@ package ru.gulllak.placefinder.bot;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Location;
@@ -14,7 +14,6 @@ import ru.gulllak.placefinder.bot.condition.BotConditionHandler;
 import ru.gulllak.placefinder.bot.handler.callbackquery.CallbackQueryHandler;
 import ru.gulllak.placefinder.model.Filter;
 import ru.gulllak.placefinder.model.User;
-import ru.gulllak.placefinder.service.PlaceService;
 import ru.gulllak.placefinder.service.UserService;
 
 import java.io.Serializable;
@@ -24,15 +23,13 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class UpdateReceiver {
-    private final PlaceService placeService;
-
     private final UserService userService;
 
     private final BotConditionHandler botConditionHandler;
 
     private final CallbackQueryHandler callbackQueryHandler;
 
-    public List<BotApiMethod<? extends Serializable>> handleUpdate(Update update) {
+    public List<PartialBotApiMethod<? extends Serializable>> handleUpdate(Update update) {
         if (update.hasMessage() && update.getMessage().hasText()) {
             Message message = update.getMessage();
             BotCondition botCondition = getBotConditions(message);
@@ -47,14 +44,6 @@ public class UpdateReceiver {
                     message.getText(),
                     botCondition
             );
-
-//            if(message.getText().equals("/start")) {
-//                return Collections.singletonList(startMessage(message.getChatId(), message.getFrom().getUserName()));
-//            } else {
-//                List<SendPhoto> sendPhotos = placeService.answer(message.getChatId(), message.getText());
-//
-//                return sendPhotos.stream().map(photo -> (PartialBotApiMethod<? extends Serializable>) photo).collect(Collectors.toList());
-//            }
 
             return botConditionHandler.handleTextMessageByCondition(message, botCondition);
         }
@@ -77,7 +66,7 @@ public class UpdateReceiver {
             );
 
             //удаляем кнопку поделиться
-            List<BotApiMethod<? extends Serializable>> sending = botConditionHandler.handleTextMessageByCondition(message, botCondition);
+            List<PartialBotApiMethod<? extends Serializable>> sending = botConditionHandler.handleTextMessageByCondition(message, botCondition);
             sending.add(0, removeKeyboard(message.getChatId()));
 
             return sending;

@@ -1,6 +1,7 @@
 package ru.gulllak.placefinder.service;
 
 import com.google.maps.GeoApiContext;
+import com.google.maps.PlaceDetailsRequest;
 import com.google.maps.PlacesApi;
 import com.google.maps.errors.ApiException;
 import com.google.maps.model.LatLng;
@@ -17,15 +18,21 @@ import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
-import org.telegram.telegrambots.meta.api.objects.Message;
 import ru.gulllak.placefinder.model.Filter;
 import ru.gulllak.placefinder.model.Place;
 import ru.gulllak.placefinder.mapper.PlaceMapper;
+import ru.gulllak.placefinder.util.AttractionTypes;
+import ru.gulllak.placefinder.util.CafeTypes;
+import ru.gulllak.placefinder.util.Emoji;
 
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -35,7 +42,7 @@ public class PlaceServiceImpl implements PlaceService {
 
     private final GeoApiContext context;
 
-    private final UserService userService;
+    private final ReplyMessageService replyMessageService;
 
     @Override
     public PlacesSearchResponse getPlacesIdByText(GeoApiContext context, String messageText) {
@@ -51,6 +58,10 @@ public class PlaceServiceImpl implements PlaceService {
         try {
             return PlacesApi.placeDetails(context, placeId)
                     .language("ru")
+                    .fields(PlaceDetailsRequest.FieldMask.PLACE_ID, PlaceDetailsRequest.FieldMask.NAME,
+                            PlaceDetailsRequest.FieldMask.RATING, PlaceDetailsRequest.FieldMask.OPENING_HOURS,
+                            PlaceDetailsRequest.FieldMask.PHOTOS, PlaceDetailsRequest.FieldMask.VICINITY,
+                            PlaceDetailsRequest.FieldMask.USER_RATINGS_TOTAL, PlaceDetailsRequest.FieldMask.URL)
                     .await();
         } catch (ApiException | InterruptedException | IOException e) {
             throw new RuntimeException(e);
@@ -81,43 +92,50 @@ public class PlaceServiceImpl implements PlaceService {
         //Получаем список мест
         PlacesSearchResponse placesResponse =  getPlacesNearby(context, cityResponse.results[0].geometry.location, PlaceType.TOURIST_ATTRACTION, 5000);
 
-//        List<Place> places = PlaceMapper.placesSearchResponseToPlaces(placesResponse);
-//
-//        List<BotApiMethod<? extends Serializable>> list = new ArrayList<>();
-//
-//        if (places.size() > 0) {
-//            for (Place place : places) {
-//                list.add(prepareSendPhoto(place, chatId));
-//            }
-//        }
+
         return null;
     }
 
     @Override
-    public List<BotApiMethod<? extends Serializable>> getSearchResults(long chatId, Filter filter) {
+    public List<PartialBotApiMethod<? extends Serializable>> getSearchResults(long chatId, Filter filter) {
         LatLng latLng = new LatLng(filter.getLat(), filter.getLon());
-        PlacesSearchResponse placesSearchResponse = getPlacesNearby(context, latLng, filter.getPlaceType(), filter.getDistance());
+        List<PlacesSearchResult> results = new ArrayList<>();
         List<PlaceDetails> placeWithDetails = new ArrayList<>();
 
-        for (PlacesSearchResult result : placesSearchResponse.results) {
+        if (filter.getPlaceType().equals(PlaceType.CAFE)) {
+            results = getAllTypeCafes(context, latLng, filter.getDistance());
+        }
+
+        if(filter.getPlaceType().equals(PlaceType.TOURIST_ATTRACTION)) {
+            results = getAllTypeAttractions(context, latLng, filter.getDistance());
+        }
+
+        for (PlacesSearchResult result : results) {
             placeWithDetails.add(getPlaceDetailsByPlaceId(context, result.placeId));
         }
 
+        placeWithDetails = placeWithDetails.stream()
+                .filter(placeDetails -> placeDetails.photos != null)
+                .collect(Collectors.toList());
+
         List<Place> places = PlaceMapper.placesSearchResponseToPlaces(placeWithDetails).stream()
                 .filter(place -> place.getRating() >= filter.getRating())
+                .sorted(Comparator.comparingInt(Place::getReviewCount).reversed())
+                .limit(10)
                 .toList();
 
         List<PartialBotApiMethod<? extends Serializable>> result = new ArrayList<>();
-
-        SendMessage sendMessage = new SendMessage();
-        result.add(sendMessage);
-        SendPhoto sendPhoto = new SendPhoto();
-        result.add(sendPhoto);
 
         if (places.size() > 0) {
             for (Place place : places) {
                 result.add(prepareSendPhoto(place, chatId));
             }
+        }
+
+        if(result.size() == 0) {
+            SendMessage sendMessage = replyMessageService.getTextMessage(chatId,
+                    "К сожалению мы не нашли интересных локаций по вашему запросу " + Emoji.CRYING_CAT);
+            result.add(sendMessage);
         }
 
         return result;
@@ -132,19 +150,50 @@ public class PlaceServiceImpl implements PlaceService {
                 .append("Рейтинг: ").append(place.getRating()).append("\n")
                 .append("Количество отзывов: ").append(place.getReviewCount()).append("\n")
                 .append("Открыто сейчас: ").append(isOpen(place.getOpenNow())).append("\n")
-                .append("Адрес: ").append(place.getAddress());
+                .append("Адрес: ").append(place.getAddress()).append("\n")
+                .append("<a href=\"").append(place.getSource().toString()).append("\"><b>Перейти в карты</b></a>");
 
-        SendPhoto sendPhoto = SendPhoto.builder()
+
+        return SendPhoto.builder()
                 .chatId(chatId)
                 .photo(new InputFile(photo))
                 .caption(caption.toString())
                 .parseMode(ParseMode.HTML)
                 .disableNotification(true)
                 .build();
-        return sendPhoto;
     }
 
     private String isOpen(Boolean openNow) {
         return openNow == null ? "Неизвестно" : openNow ? "Открыто" : "Закрыто";
+    }
+
+    private List<PlacesSearchResult> getAllTypeCafes(GeoApiContext context, LatLng latLng, int distance) {
+        Map<String, PlacesSearchResult> uniqueResults = new HashMap<>();
+
+        for (CafeTypes cafeType : CafeTypes.values()) {
+            PlaceType placeType = PlaceType.valueOf(cafeType.name());
+            PlacesSearchResponse response = getPlacesNearby(context, latLng, placeType, distance);
+
+            for(PlacesSearchResult place : response.results) {
+                uniqueResults.put(place.placeId, place);
+            }
+        }
+
+        return new ArrayList<>(uniqueResults.values());
+    }
+
+    private List<PlacesSearchResult> getAllTypeAttractions(GeoApiContext context, LatLng latLng, int distance) {
+        Map<String, PlacesSearchResult> uniqueResults = new HashMap<>();
+
+        for (AttractionTypes cafeType : AttractionTypes.values()) {
+            PlaceType placeType = PlaceType.valueOf(cafeType.name());
+            PlacesSearchResponse response = getPlacesNearby(context, latLng, placeType, distance);
+
+            for(PlacesSearchResult place : response.results) {
+                uniqueResults.put(place.placeId, place);
+            }
+        }
+
+        return new ArrayList<>(uniqueResults.values());
     }
 }

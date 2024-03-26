@@ -2,7 +2,7 @@ package ru.gulllak.placefinder.bot.handler.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
@@ -32,7 +32,7 @@ public class FilterPropertiesMessageHandler implements MessageHandler {
     }
 
     @Override
-    public List<BotApiMethod<? extends Serializable>> handle(Message message) {
+    public List<PartialBotApiMethod<? extends Serializable>> handle(Message message) {
         Long chatId = message.getChatId();
         String text = message.getText();
         User user = userService.getById(chatId);
@@ -85,7 +85,7 @@ public class FilterPropertiesMessageHandler implements MessageHandler {
             case "/rating" -> {
                 float rating;
                 try {
-                    rating = Float.parseFloat(text);
+                    rating = Float.parseFloat(text.replace(",", "."));
                     if (rating < 0 || rating > 5) {
                         throw new NumberFormatException();
                     }

@@ -2,7 +2,7 @@ package ru.gulllak.placefinder.bot.handler.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
@@ -28,7 +28,7 @@ public class FilterMessageHandler implements MessageHandler {
     }
 
     @Override
-    public List<BotApiMethod<? extends Serializable>> handle(Message message) {
+    public List<PartialBotApiMethod<? extends Serializable>> handle(Message message) {
         Long chatId = message.getChatId();
 
         SendMessage sendMessage = replyMessageService.getTextMessage(chatId,

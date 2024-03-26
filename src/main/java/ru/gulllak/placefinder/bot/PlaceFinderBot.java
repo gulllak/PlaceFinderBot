@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
-import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
@@ -27,7 +26,7 @@ public class PlaceFinderBot extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
-        List<BotApiMethod<? extends Serializable>> responseToUser = updateReceiver.handleUpdate(update);
+        List<PartialBotApiMethod<? extends Serializable>> responseToUser = updateReceiver.handleUpdate(update);
 
         for (PartialBotApiMethod<? extends Serializable> partialBotApiMethod : responseToUser) {
             if(partialBotApiMethod instanceof SendMessage) {

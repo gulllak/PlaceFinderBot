@@ -4,7 +4,6 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.net.URL;
-import java.util.List;
 
 @Data
 @Builder
@@ -12,9 +11,9 @@ public class Place {
     private String placeId;
     private String name;
     private float rating;
-    private List<String> types;
     private Boolean openNow;
     private String photoReference;
     private String address;
     private int reviewCount;
+    private URL source;
 }

@@ -1,11 +1,10 @@
 package ru.gulllak.placefinder.bot.handler.callbackquery;
 
 import com.google.maps.model.PlaceType;
-import jakarta.validation.constraints.Email;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
@@ -34,7 +33,7 @@ public class PlaceFinderCallbackQueryHandler implements CallbackQueryHandler {
     private final BotConditionHandler botConditionHandler;
 
     @Override
-    public List<BotApiMethod<? extends Serializable>> handleCallbackQuery(CallbackQuery callbackQuery) {
+    public List<PartialBotApiMethod<? extends Serializable>> handleCallbackQuery(CallbackQuery callbackQuery) {
         Long chatId = callbackQuery.getFrom().getId();
         String callbackData = callbackQuery.getData();
         User user = userService.getById(chatId);
@@ -105,6 +104,9 @@ public class PlaceFinderCallbackQueryHandler implements CallbackQueryHandler {
                 user.getFilter().setPlaceType(PlaceType.CAFE);
                 userService.save(user);
 
+                return botConditionHandler.handleTextMessageByCondition(message, user.getCondition());
+
+            case "/start":
                 return botConditionHandler.handleTextMessageByCondition(message, user.getCondition());
 
             default: 

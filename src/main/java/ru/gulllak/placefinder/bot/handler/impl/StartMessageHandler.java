@@ -2,7 +2,7 @@ package ru.gulllak.placefinder.bot.handler.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
@@ -27,12 +27,12 @@ public class StartMessageHandler implements MessageHandler {
     }
 
     @Override
-    public List<BotApiMethod<? extends Serializable>> handle(Message message) {
+    public List<PartialBotApiMethod<? extends Serializable>> handle(Message message) {
         Long chatId = message.getChatId();
 
         SendMessage sendMessage = replyMessageService.getTextMessage(chatId,
                 String.join("\n\n",
-                        "Привет " + message.getFrom().getFirstName() + "! " + Emoji.HELLO,
+                        "Привет " + getName(message) + "! " + Emoji.HELLO,
                         "Наш бот умеет искать наиболее интересные места рядом с тобой, а именно:",
                         Emoji.ATTRACTION + " Достопремечательности",
                         Emoji.PIZZA + " Рестораны\n",
@@ -51,7 +51,14 @@ public class StartMessageHandler implements MessageHandler {
 
         sendMessage.setReplyMarkup(replyKeyboard);
 
-
         return Collections.singletonList(sendMessage);
+    }
+
+    private String getName(Message message) {
+        if (message.getFrom().getFirstName().equals("PlaceFinder")) {
+            return message.getChat().getFirstName();
+        } else {
+            return message.getFrom().getFirstName();
+        }
     }
 }
