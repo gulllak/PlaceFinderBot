@@ -103,11 +103,11 @@ public class PlaceServiceImpl implements PlaceService {
         List<PlaceDetails> placeWithDetails = new ArrayList<>();
 
         if (filter.getPlaceType().equals(PlaceType.CAFE)) {
-            results = getAllTypeCafes(context, latLng, filter.getDistance());
+            results = getAllTypeCafes(context, latLng, getDistance(filter));
         }
 
         if(filter.getPlaceType().equals(PlaceType.TOURIST_ATTRACTION)) {
-            results = getAllTypeAttractions(context, latLng, filter.getDistance());
+            results = getAllTypeAttractions(context, latLng, getDistance(filter));
         }
 
         for (PlacesSearchResult result : results) {
@@ -195,5 +195,9 @@ public class PlaceServiceImpl implements PlaceService {
         }
 
         return new ArrayList<>(uniqueResults.values());
+    }
+
+    private int getDistance(Filter filter) {
+        return filter.getDistance() == 0 ? 10000 : filter.getDistance();
     }
 }
