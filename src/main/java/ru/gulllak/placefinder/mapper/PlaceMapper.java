@@ -1,5 +1,7 @@
 package ru.gulllak.placefinder.mapper;
 
+import com.google.maps.model.AddressType;
+import com.google.maps.model.PlaceDetails;
 import com.google.maps.model.PlacesSearchResponse;
 import com.google.maps.model.PlacesSearchResult;
 import ru.gulllak.placefinder.model.Place;
@@ -9,23 +11,22 @@ import java.util.Arrays;
 import java.util.List;
 
 public class PlaceMapper {
-    private static Place placeSearchResultToPlace(PlacesSearchResult placesSearchResult) {
+    private static Place placeSearchResultToPlace(PlaceDetails placeDetails) {
         return Place.builder()
-                .placeId(placesSearchResult.placeId)
-                .name(placesSearchResult.name)
-                .icon(placesSearchResult.icon)
-                .rating(placesSearchResult.rating)
-                .types(Arrays.stream(placesSearchResult.types).toList())
-                .openNow(placesSearchResult.openingHours != null ? placesSearchResult.openingHours.openNow : null)
-                .photoReference(placesSearchResult.photos[0].photoReference)
-                .address(placesSearchResult.vicinity)
-                .reviewCount(placesSearchResult.userRatingsTotal)
+                .placeId(placeDetails.placeId)
+                .name(placeDetails.name)
+                .rating(placeDetails.rating)
+                .types(Arrays.stream(placeDetails.types).map(AddressType::toString).toList())
+                .openNow(placeDetails.openingHours != null ? placeDetails.openingHours.openNow : null)
+                .photoReference(placeDetails.photos[0].photoReference)
+                .address(placeDetails.vicinity)
+                .reviewCount(placeDetails.userRatingsTotal)
                 .build();
     }
 
-    public static List<Place> placesSearchResponseToPlaces(PlacesSearchResponse placesSearchResponse) {
+    public static List<Place> placesSearchResponseToPlaces(List<PlaceDetails> placeDetails) {
         List<Place> places = new ArrayList<>();
-        for (PlacesSearchResult place : placesSearchResponse.results) {
+        for (PlaceDetails place : placeDetails) {
             places.add(placeSearchResultToPlace(place));
         }
         return places;

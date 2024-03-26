@@ -21,7 +21,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class FilterPropertiesHandler implements MessageHandler {
+public class FilterPropertiesMessageHandler implements MessageHandler {
     private final ReplyMessageService replyMessageService;
 
     private final UserService userService;
@@ -38,6 +38,7 @@ public class FilterPropertiesHandler implements MessageHandler {
         User user = userService.getById(chatId);
         Filter filter = user.getFilter();
         String filterState = user.getFilterState();
+
 
         SendMessage sendMessage = new SendMessage();
         ReplyKeyboard replyKeyboard;
@@ -56,15 +57,19 @@ public class FilterPropertiesHandler implements MessageHandler {
                 }
                 filter.setDistance(distance);
                 userService.save(user);
-                sendMessage = replyMessageService.getTextMessage(chatId,
-                        "Параметр «расстояние» сохранен. Выберите следующий фильтр или нажмите «Продолжить»");
+
                 if (filter.isRating()) {
+                    sendMessage = replyMessageService.getTextMessage(chatId,
+                            Emoji.OK + " Параметр «расстояние» сохранен. \n Нажмите «Продолжить»");
                     replyKeyboard = InlineKeyboardMarkupBuilder.create(chatId)
                             .row()
                             .button("Продолжить", "/continue")
                             .endRow()
                             .build();
                 } else {
+                    sendMessage = replyMessageService.getTextMessage(chatId,
+                            Emoji.OK + " Параметр «расстояние» сохранен. \n Выберите один из доступных фильтров или нажмите «Продолжить»");
+
                     replyKeyboard = InlineKeyboardMarkupBuilder.create(chatId)
                             .row()
                             .button("Рейтинг", "/rating")
@@ -90,15 +95,20 @@ public class FilterPropertiesHandler implements MessageHandler {
                 }
                 filter.setRating(rating);
                 userService.save(user);
-                sendMessage = replyMessageService.getTextMessage(chatId,
-                        "Параметр «рейтинг» сохранен. Выберите следующий фильтр или нажмите «Продолжить»");
+
                 if (filter.isDistance()) {
+                    sendMessage = replyMessageService.getTextMessage(chatId,
+                            Emoji.OK + " Параметр «рейтинг» сохранен. \n Нажмите «Продолжить»");
+
                     replyKeyboard = InlineKeyboardMarkupBuilder.create(chatId)
                             .row()
                             .button("Продолжить", "/continue")
                             .endRow()
                             .build();
                 } else {
+                    sendMessage = replyMessageService.getTextMessage(chatId,
+                            Emoji.OK + " Параметр «рейтинг» сохранен. \n Выберите один из доступных фильтров или нажмите «Продолжить»");
+
                     replyKeyboard = InlineKeyboardMarkupBuilder.create(chatId)
                             .row()
                             .button("Расстояние", "/radius")

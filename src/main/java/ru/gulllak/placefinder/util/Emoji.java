@@ -10,7 +10,8 @@ public enum Emoji {
     LOCATION(EmojiParser.parseToUnicode(":round_pushpin:")),
     DOWN(EmojiParser.parseToUnicode(":arrow_down_small:")),
     MAG(EmojiParser.parseToUnicode(":mag:")),
-    ANGRY(EmojiParser.parseToUnicode(":rage:"));
+    ANGRY(EmojiParser.parseToUnicode(":rage:")),
+    OK(EmojiParser.parseToUnicode(":white_check_mark:"));
 
     private final String emojiName;
 

@@ -1,7 +1,10 @@
 package ru.gulllak.placefinder.model;
 
+import com.google.maps.model.PlaceType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.MapsId;
@@ -17,6 +20,10 @@ public class Filter {
     @Id
     @Column(name = "user_id")
     private Long userId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "place_type")
+    PlaceType placeType;
 
     private int distance;
 
