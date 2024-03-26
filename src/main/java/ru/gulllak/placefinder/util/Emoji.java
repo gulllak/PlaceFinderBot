@@ -12,7 +12,8 @@ public enum Emoji {
     MAG(EmojiParser.parseToUnicode(":mag:")),
     ANGRY(EmojiParser.parseToUnicode(":rage:")),
     OK(EmojiParser.parseToUnicode(":white_check_mark:")),
-    CRYING_CAT(EmojiParser.parseToUnicode(":crying_cat_face:"));
+    CRYING_CAT(EmojiParser.parseToUnicode(":crying_cat_face:")),
+    GHOST(EmojiParser.parseToUnicode(":ghost:"));
 
     private final String emojiName;
 

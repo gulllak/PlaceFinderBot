@@ -77,7 +77,7 @@ public class PlaceFinderCallbackQueryHandler implements CallbackQueryHandler {
                 userService.save(user);
 
                 sendMessage = replyMessageService.getTextMessage(chatId,
-                        "Хотите найти интересные достопримечательности или вкусно перекусить?");
+                        "Хотите найти интересные достопримечательности или вкусно перекусить? Нажмите на кнопку и подождите." + Emoji.GHOST);
 
                 ReplyKeyboard replyKeyboard = InlineKeyboardMarkupBuilder.create(chatId)
                         .row()
