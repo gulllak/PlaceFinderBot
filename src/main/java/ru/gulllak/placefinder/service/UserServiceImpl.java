@@ -2,16 +2,19 @@ package ru.gulllak.placefinder.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.gulllak.placefinder.bot.BotCondition;
 import ru.gulllak.placefinder.model.User;
 import ru.gulllak.placefinder.repository.UserRepository;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
     @Override
+    @Transactional
     public void save(User user) {
         userRepository.save(user);
     }

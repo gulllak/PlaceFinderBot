@@ -6,6 +6,7 @@ public enum BotCondition {
     LOCATION_SEARCH,
     SEARCHING_FILTERS,
     FILTER_PROPERTIES,
+    CHOOSING_TYPE,
     PLACE_ANSWER,
     HELP
 }

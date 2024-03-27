@@ -13,7 +13,8 @@ import ru.gulllak.placefinder.service.ReplyMessageService;
 import ru.gulllak.placefinder.util.Emoji;
 
 import java.io.Serializable;
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Component
@@ -37,21 +38,22 @@ public class StartMessageHandler implements MessageHandler {
                         Emoji.ATTRACTION + " Достопремечательности",
                         Emoji.PIZZA + " Рестораны\n",
 
-                        Emoji.WORLD + " Поделитесть с нами своей геопозицией, или отправьте название города сообщением"));
+                        Emoji.WORLD + " Поделитесть с нами своей геопозицией."));
 
         ReplyKeyboard replyKeyboard = InlineKeyboardMarkupBuilder.create(chatId)
                 .setText("Вариант поиска")
                 .row()
                 .button("Поделиться моей локацией", "/location_search")
                 .endRow()
-                .row()
-                .button("Ввести город", "/text_search")
-                .endRow()
+//                .row()
+//                .button("Ввести город", "/text_search")
+//                .endRow()
+//                , или отправьте название города сообщением
                 .build();
 
         sendMessage.setReplyMarkup(replyKeyboard);
 
-        return Collections.singletonList(sendMessage);
+        return new ArrayList<>(Arrays.asList(sendMessage));
     }
 
     private String getName(Message message) {

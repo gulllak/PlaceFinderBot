@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Location;
 import org.telegram.telegrambots.meta.api.objects.Message;
@@ -14,7 +15,9 @@ import ru.gulllak.placefinder.bot.condition.BotConditionHandler;
 import ru.gulllak.placefinder.bot.handler.callbackquery.CallbackQueryHandler;
 import ru.gulllak.placefinder.model.Filter;
 import ru.gulllak.placefinder.model.User;
+import ru.gulllak.placefinder.service.ReplyMessageService;
 import ru.gulllak.placefinder.service.UserService;
+import ru.gulllak.placefinder.util.Emoji;
 
 import java.io.Serializable;
 import java.util.List;
@@ -28,6 +31,8 @@ public class UpdateReceiver {
     private final BotConditionHandler botConditionHandler;
 
     private final CallbackQueryHandler callbackQueryHandler;
+
+    private final ReplyMessageService replyMessageService;
 
     public List<PartialBotApiMethod<? extends Serializable>> handleUpdate(Update update) {
         if (update.hasMessage() && update.getMessage().hasText()) {
@@ -72,7 +77,6 @@ public class UpdateReceiver {
             return sending;
         }
 
-
         else if (update.hasCallbackQuery()) {
             CallbackQuery callbackQuery = update.getCallbackQuery();
 
@@ -89,7 +93,28 @@ public class UpdateReceiver {
         }
 
         else {
-            return null;
+            Message message = update.getMessage();
+            BotCondition botCondition = getBotConditions(message);
+
+            log.error(
+                    "Unsupported request from: {}; " +
+                            "chatId: {}",
+                    update.getMessage().getFrom().getUserName(),
+                    update.getMessage().getChatId()
+            );
+
+            DeleteMessage deleteMessage = new DeleteMessage(String.valueOf(message.getChatId()), message.getMessageId() - 1);
+            DeleteMessage deleteMessage1 = new DeleteMessage(String.valueOf(message.getChatId()), message.getMessageId());
+
+            SendMessage sendMessage = replyMessageService.getTextMessage(update.getMessage().getChatId(),
+                    Emoji.GOBLIN + " Больше так не делайте!");
+
+            List<PartialBotApiMethod<? extends Serializable>> answer = botConditionHandler.handleTextMessageByCondition(update.getMessage(), botCondition);
+            answer.add(0, deleteMessage);
+            answer.add(1, deleteMessage1);
+            answer.add(2, sendMessage);
+
+            return answer;
         }
     }
 

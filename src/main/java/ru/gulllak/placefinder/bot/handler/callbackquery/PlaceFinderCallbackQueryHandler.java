@@ -9,16 +9,15 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import ru.gulllak.placefinder.bot.BotCondition;
 import ru.gulllak.placefinder.bot.condition.BotConditionHandler;
-import ru.gulllak.placefinder.bot.keyboard.InlineKeyboardMarkupBuilder;
 import ru.gulllak.placefinder.model.User;
 import ru.gulllak.placefinder.service.ReplyMessageService;
 import ru.gulllak.placefinder.service.UserService;
-import ru.gulllak.placefinder.util.Emoji;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -60,7 +59,7 @@ public class PlaceFinderCallbackQueryHandler implements CallbackQueryHandler {
                 sendMessage = replyMessageService.getTextMessage(chatId,
                         "Укажите на каком максимальном расстоянии (в метрах) от вас искать");
 
-                return List.of(deleteMessage, sendMessage);
+                return new ArrayList<>(Arrays.asList(deleteMessage, sendMessage));
 
             case "/rating":
                 user.setCondition(BotCondition.FILTER_PROPERTIES);
@@ -70,27 +69,14 @@ public class PlaceFinderCallbackQueryHandler implements CallbackQueryHandler {
                 sendMessage = replyMessageService.getTextMessage(chatId,
                         "Укажите минимальный рейтинг места от 0 до 5, например 4.2");
 
-                return List.of(deleteMessage, sendMessage);
+                return new ArrayList<>(Arrays.asList(deleteMessage, sendMessage));
 
             case "/continue":
                 user.setFilterState(null);
+                user.setCondition(BotCondition.CHOOSING_TYPE);
                 userService.save(user);
 
-                sendMessage = replyMessageService.getTextMessage(chatId,
-                        "Хотите найти интересные достопримечательности или вкусно перекусить? Нажмите на кнопку и подождите." + Emoji.GHOST);
-
-                ReplyKeyboard replyKeyboard = InlineKeyboardMarkupBuilder.create(chatId)
-                        .row()
-                        .button(Emoji.ATTRACTION + " Достопримечательности", "/attraction")
-                        .endRow()
-                        .row()
-                        .button(Emoji.PIZZA + " Кафе и рестораны", "/cafe")
-                        .endRow()
-                        .build();
-
-                sendMessage.setReplyMarkup(replyKeyboard);
-
-                return List.of(deleteMessage, sendMessage);
+                return botConditionHandler.handleTextMessageByCondition(message, user.getCondition());
 
             case "/attraction":
                 user.setCondition(BotCondition.PLACE_ANSWER);
@@ -109,7 +95,7 @@ public class PlaceFinderCallbackQueryHandler implements CallbackQueryHandler {
             case "/start":
                 return botConditionHandler.handleTextMessageByCondition(message, user.getCondition());
 
-            default: 
+            default:
                 return Collections.singletonList(
                         replyMessageService.getTextMessage(chatId, "Не удалось обрабоать информацию"));
         }

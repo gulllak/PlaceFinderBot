@@ -16,7 +16,8 @@ import ru.gulllak.placefinder.service.UserService;
 import ru.gulllak.placefinder.util.Emoji;
 
 import java.io.Serializable;
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Component
@@ -52,8 +53,8 @@ public class FilterPropertiesMessageHandler implements MessageHandler {
                         throw new NumberFormatException();
                     }
                 } catch (NumberFormatException ex) {
-                    return Collections.singletonList(replyMessageService.getTextMessage(chatId,
-                            Emoji.ANGRY + " Введите целое число"));
+                    return new ArrayList<>(Arrays.asList(replyMessageService.getTextMessage(chatId,
+                            Emoji.ANGRY + " Введите целое число")));
                 }
                 filter.setDistance(distance);
                 userService.save(user);
@@ -83,15 +84,17 @@ public class FilterPropertiesMessageHandler implements MessageHandler {
                 user.setFilterState(null);
             }
             case "/rating" -> {
-                float rating;
+                float rating = -1;
                 try {
-                    rating = Float.parseFloat(text.replace(",", "."));
+                    if(text != null) {
+                        rating = Float.parseFloat(text.replace(",", "."));
+                    }
                     if (rating < 0 || rating > 5) {
                         throw new NumberFormatException();
                     }
                 } catch (NumberFormatException ex) {
-                    return Collections.singletonList(replyMessageService.getTextMessage(chatId,
-                            Emoji.ANGRY + " Введите число от 0 до 5, например 4.2"));
+                    return new ArrayList<>(Arrays.asList(replyMessageService.getTextMessage(chatId,
+                            Emoji.ANGRY + " Введите число от 0 до 5, например 4.2")));
                 }
                 filter.setRating(rating);
                 userService.save(user);
@@ -123,6 +126,6 @@ public class FilterPropertiesMessageHandler implements MessageHandler {
             }
         }
 
-        return Collections.singletonList(sendMessage);
+        return new ArrayList<>(Arrays.asList(sendMessage));
     }
 }

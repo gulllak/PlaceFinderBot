@@ -14,6 +14,8 @@ import ru.gulllak.placefinder.service.ReplyMessageService;
 import ru.gulllak.placefinder.util.Emoji;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Component
@@ -44,6 +46,6 @@ public class LocationMessageHandler implements MessageHandler {
 
         sendMessage.setReplyMarkup(replyKeyboard);
 
-        return List.of(deleteMessage, sendMessage);
+        return new ArrayList<>(Arrays.asList(deleteMessage, sendMessage));
     }
 }

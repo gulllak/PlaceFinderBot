@@ -13,7 +13,8 @@ public enum Emoji {
     ANGRY(EmojiParser.parseToUnicode(":rage:")),
     OK(EmojiParser.parseToUnicode(":white_check_mark:")),
     CRYING_CAT(EmojiParser.parseToUnicode(":crying_cat_face:")),
-    GHOST(EmojiParser.parseToUnicode(":ghost:"));
+    GHOST(EmojiParser.parseToUnicode(":ghost:")),
+    GOBLIN(EmojiParser.parseToUnicode(":japanese_goblin:"));
 
     private final String emojiName;
 
