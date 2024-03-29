@@ -13,7 +13,7 @@ import ru.gulllak.placefinder.bot.PlaceFinderBot;
 public class PlaceFinderBotConfiguration {
 
     @Bean
-    public GeoApiContext context(@Value("${api.key}") String apiKey) {
+    public GeoApiContext context(@Value("${GOOGLE_PLACES_API_KEY}") String apiKey) {
         return new GeoApiContext.Builder()
                 .apiKey(apiKey)
                 .build();

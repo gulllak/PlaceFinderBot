@@ -19,9 +19,14 @@ import java.util.List;
 public class PlaceFinderBot extends TelegramLongPollingBot {
     private final UpdateReceiver updateReceiver;
 
-    public PlaceFinderBot(@Value("${bot.token}")String botToken, UpdateReceiver updateReceiver) {
+    public PlaceFinderBot(@Value("${BOT_TOKEN}")String botToken, UpdateReceiver updateReceiver) {
         super(botToken);
         this.updateReceiver = updateReceiver;
+    }
+
+    @Override
+    public String getBotUsername() {
+        return "PlacesFinder_bot";
     }
 
     @Override
@@ -54,10 +59,5 @@ public class PlaceFinderBot extends TelegramLongPollingBot {
                 }
             }
         }
-    }
-
-    @Override
-    public String getBotUsername() {
-        return "PlacesFinder_bot";
     }
 }

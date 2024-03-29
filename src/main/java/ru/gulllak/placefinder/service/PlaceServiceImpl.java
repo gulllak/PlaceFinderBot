@@ -12,7 +12,6 @@ import com.google.maps.model.PlacesSearchResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -37,21 +36,12 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class PlaceServiceImpl implements PlaceService {
-    @Value("${api.key}")
+    @Value("${GOOGLE_PLACES_API_KEY}")
     private String API_KEY;
 
     private final GeoApiContext context;
 
     private final ReplyMessageService replyMessageService;
-
-    @Override
-    public PlacesSearchResponse getPlacesIdByText(GeoApiContext context, String messageText) {
-        try {
-            return PlacesApi.textSearchQuery(context, messageText).await();
-        } catch (ApiException | InterruptedException | IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     @Override
     public PlaceDetails getPlaceDetailsByPlaceId(GeoApiContext context, String placeId) {
@@ -83,17 +73,6 @@ public class PlaceServiceImpl implements PlaceService {
         } catch (ApiException | InterruptedException | IOException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    @Override
-    public List<BotApiMethod<? extends Serializable>> getSearchResults(long chatId, String messageText) {
-        //Получаем id текущего местоположения
-        PlacesSearchResponse cityResponse = getPlacesIdByText(context, messageText);
-        //Получаем список мест
-        PlacesSearchResponse placesResponse =  getPlacesNearby(context, cityResponse.results[0].geometry.location, PlaceType.TOURIST_ATTRACTION, 5000);
-
-
-        return null;
     }
 
     @Override

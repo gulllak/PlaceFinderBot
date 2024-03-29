@@ -1,31 +1,34 @@
 version: '3.8'
+
+volumes:
+  db-placeFinder:
+
 services:
   app:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: place-finder-app
+    restart: always
     ports:
       - "8080:8080"
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://place-finder-db:5432/place-finder
       - SPRING_DATASOURCE_USERNAME=evgenii
-      - SPRING_DATASOURCE_PASSWORD=08800880
+      - SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
+      - BOT_TOKEN=${BOT_TOKEN}
+      - GOOGLE_PLACES_API_KEY=${GOOGLE_PLACES_API_KEY}
+      - LIQUIBASE_CHANGELOG=db/changelog/db.changelog-master.yaml
     depends_on:
       - place-finder-db
 
   place-finder-db:
     image: postgres:latest
     container_name: postgres-placeFinder-db
+    restart: always
     volumes:
       - db-placeFinder:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
     environment:
       POSTGRES_DB: place-finder
       POSTGRES_USER: evgenii
-      POSTGRES_PASSWORD: 08800880
-
-
-volumes:
-  db-placeFinder:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
