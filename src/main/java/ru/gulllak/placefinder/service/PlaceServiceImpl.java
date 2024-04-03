@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -82,11 +83,11 @@ public class PlaceServiceImpl implements PlaceService {
         List<PlaceDetails> placeWithDetails = new ArrayList<>();
 
         if (filter.getPlaceType().equals(PlaceType.CAFE)) {
-            results = getAllTypeCafes(context, latLng, getDistance(filter));
+            results = getAllTypePlaces(context, latLng, getDistance(filter), CafeTypes.class);
         }
 
         if(filter.getPlaceType().equals(PlaceType.TOURIST_ATTRACTION)) {
-            results = getAllTypeAttractions(context, latLng, getDistance(filter));
+            results = getAllTypePlaces(context, latLng, getDistance(filter), AttractionTypes.class);
         }
 
         for (PlacesSearchResult result : results) {
@@ -97,10 +98,13 @@ public class PlaceServiceImpl implements PlaceService {
                 .filter(placeDetails -> placeDetails.photos != null)
                 .collect(Collectors.toList());
 
+        Comparator<Place> reviewCountComparator = Comparator.comparingInt(Place::getReviewCount).reversed();
+        Comparator<Place> ratingComparator = Comparator.comparingDouble(Place::getRating).reversed();
+
         List<Place> places = PlaceMapper.placesSearchResponseToPlaces(placeWithDetails).stream()
                 .filter(place -> place.getRating() >= filter.getRating())
-                .sorted(Comparator.comparingInt(Place::getReviewCount).reversed())
-                .limit(10)
+                .sorted(reviewCountComparator.thenComparing(ratingComparator))
+                .limit(15)
                 .toList();
 
         List<PartialBotApiMethod<? extends Serializable>> result = new ArrayList<>();
@@ -132,7 +136,6 @@ public class PlaceServiceImpl implements PlaceService {
                 .append("Адрес: ").append(place.getAddress()).append("\n")
                 .append("<a href=\"").append(place.getSource().toString()).append("\"><b>Перейти в карты</b></a>");
 
-
         return SendPhoto.builder()
                 .chatId(chatId)
                 .photo(new InputFile(photo))
@@ -143,33 +146,21 @@ public class PlaceServiceImpl implements PlaceService {
     }
 
     private String isOpen(Boolean openNow) {
-        return openNow == null ? "Неизвестно" : openNow ? "Открыто" : "Закрыто";
+        return openNow == null ? "Неизвестно" : "Открыто";
     }
 
-    private List<PlacesSearchResult> getAllTypeCafes(GeoApiContext context, LatLng latLng, int distance) {
+    private <T extends Enum<T>> List<PlacesSearchResult> getAllTypePlaces(GeoApiContext context, LatLng latLng, int distance, Class<T> types) {
         Map<String, PlacesSearchResult> uniqueResults = new HashMap<>();
 
-        for (CafeTypes cafeType : CafeTypes.values()) {
-            PlaceType placeType = PlaceType.valueOf(cafeType.name());
+        for (T type : EnumSet.allOf(types)) {
+            PlaceType placeType = PlaceType.valueOf(type.name());
             PlacesSearchResponse response = getPlacesNearby(context, latLng, placeType, distance);
 
             for(PlacesSearchResult place : response.results) {
-                uniqueResults.put(place.placeId, place);
-            }
-        }
-
-        return new ArrayList<>(uniqueResults.values());
-    }
-
-    private List<PlacesSearchResult> getAllTypeAttractions(GeoApiContext context, LatLng latLng, int distance) {
-        Map<String, PlacesSearchResult> uniqueResults = new HashMap<>();
-
-        for (AttractionTypes cafeType : AttractionTypes.values()) {
-            PlaceType placeType = PlaceType.valueOf(cafeType.name());
-            PlacesSearchResponse response = getPlacesNearby(context, latLng, placeType, distance);
-
-            for(PlacesSearchResult place : response.results) {
-                uniqueResults.put(place.placeId, place);
+                //добавляем только открытые или неизвестно
+                if(place.openingHours == null || place.openingHours.openNow) {
+                    uniqueResults.put(place.placeId, place);
+                }
             }
         }
 
