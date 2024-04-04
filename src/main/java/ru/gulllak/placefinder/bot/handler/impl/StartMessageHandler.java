@@ -36,19 +36,14 @@ public class StartMessageHandler implements MessageHandler {
                         "Привет " + getName(message) + "! " + Emoji.HELLO,
                         "Наш бот умеет искать наиболее интересные места рядом с тобой, а именно:",
                         Emoji.ATTRACTION + " Достопремечательности",
-                        Emoji.PIZZA + " Рестораны\n",
+                        Emoji.PIZZA + " Кафе и рестораны\n",
 
-                        Emoji.WORLD + " Поделитесть с нами своей геопозицией."));
+                        Emoji.WORLD + " Поделитесть с нами своей геопозицией, чтобы приступить к поиску!"));
 
         ReplyKeyboard replyKeyboard = InlineKeyboardMarkupBuilder.create(chatId)
-                .setText("Вариант поиска")
                 .row()
                 .button("Поделиться моей локацией", "/location_search")
                 .endRow()
-//                .row()
-//                .button("Ввести город", "/text_search")
-//                .endRow()
-//                , или отправьте название города сообщением
                 .build();
 
         sendMessage.setReplyMarkup(replyKeyboard);
